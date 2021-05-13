@@ -30,10 +30,13 @@ var vis = function(data) {
     var ret = [];
     var len = POLLUTANTS.length;
     for (var i = 0; i < len; i++) {
-      if (d[POLLUTANTS[i]] != 'NULL') {
-        ret.push(d[POLLUTANTS[i]]);
-      }
+      if (d[POLLUTANTS[i]] != 0 && i==0) {ret.push(d[POLLUTANTS[i]]*10)}
+      else if (d[POLLUTANTS[i]] != 0 && i==1) {ret.push(d[POLLUTANTS[i]]*10)}
+      else if (d[POLLUTANTS[i]] != 0 && i==2) {ret.push(d[POLLUTANTS[i]]*0.1)}
+      else if (d[POLLUTANTS[i]] != 0 && i==3) {ret.push(d[POLLUTANTS[i]]*0.1)}
+      else if (d[POLLUTANTS[i]] != 0 && i==4) {ret.push(d[POLLUTANTS[i]]*0.01)}
     }
+    console.log(ret)
     return ret;
   };
 
@@ -42,8 +45,8 @@ var vis = function(data) {
     all: colorbrewer.Purples[9],
     o3: colorbrewer.Blues[9],
     co: colorbrewer.Greens[9],
-    so2: colorbrewer.Oranges[9],
-    no2: colorbrewer.YlOrBr[9],
+    so2: colorbrewer.YlOrBr[9],
+    no2: colorbrewer.Oranges[9],
     pm10: colorbrewer.Reds[9]
   };
 
@@ -51,11 +54,11 @@ var vis = function(data) {
   var data = (function () {
     // prepare data
     data.byStation = d3.nest().key(function(d) {
-      return d.place;
+      return d.Site;
     }).entries(data.values);
 
     data.byStation.forEach(function(station) {
-      // calculate mean pollution at each time stamp (<day, hour>)
+      // calculate mean pollution at each Date stamp (<month, month>)
       station.values.forEach(function(d) {
         d.value = d3.mean(getPollutants(d));
       });
@@ -66,9 +69,9 @@ var vis = function(data) {
         POLLUTANTS.forEach(function(pollutant) {
           if (v[pollutant] !== 'NULL') {  // ditch NULLs
             brokenUp.push({
-              place: v.place,
-              time: v.time,
-              hour: v.time.substr(9,2),
+              Site: v.Site,
+              Date: v.Date,
+              month: v.Date.substr(5,2),
               pollutant: pollutant,
               value: v[pollutant]
             });
@@ -93,20 +96,20 @@ var vis = function(data) {
         });
       });
 
-      // for each pollutant, group by hour
+      // for each pollutant, group by month
       station.byPollutant.forEach(function(pollutant) {
-        var byHour = d3.nest().key(function(d) {
-          return d.hour;
+        var byMonth = d3.nest().key(function(d) {
+          return d.month;
         }).entries(pollutant.values);
 
-        // get mean for each hour
-        pollutant.byHour = [];
-        byHour.forEach(function(hour) {
-          pollutant.byHour.push({
-            place: station.key,
-            hour: hour.key,
+        // get mean for each month
+        pollutant.byMonth = [];
+        byMonth.forEach(function(month) {
+          pollutant.byMonth.push({
+            Site: station.key,
+            month: month.key,
             pollutant: pollutant.key,
-            value: d3.mean(hour.values, function(d) {
+            value: d3.mean(month.values, function(d) {
               return d.value;
             })
           });
@@ -118,14 +121,14 @@ var vis = function(data) {
     data.overall = (function() {
       var overall = {};
 
-      var flattenByHour = [];
+      var flattenByMonth = [];
       data.byStation.forEach(function(station) {
         station.byPollutant.forEach(function(pollutant) {
-          pollutant.byHour.forEach(function(hour) {
-            flattenByHour.push({
-              hour: hour.hour,
-              pollutant: hour.pollutant,
-              value: hour.value
+          pollutant.byMonth.forEach(function(month) {
+            flattenByMonth.push({
+              month: month.month,
+              pollutant: month.pollutant,
+              value: month.value
             });
           });
         });
@@ -134,45 +137,45 @@ var vis = function(data) {
       // group by pollutant
       overall.byPollutant = d3.nest().key(function(d) {
         return d.pollutant;
-      }).entries(flattenByHour);
+      }).entries(flattenByMonth);
 
-      // for each pollutant, group by hour
+      // for each pollutant, group by month
       overall.byPollutant.forEach(function(pollutant) {
-        var byHour = d3.nest().key(function(d) {
-          return d.hour;
+        var byMonth = d3.nest().key(function(d) {
+          return d.month;
         }).entries(pollutant.values);
 
-        // get mean for each hour
-        pollutant.byHour = [];
-        byHour.forEach(function(hour) {
-          pollutant.byHour.push({
-            hour: hour.key,
+        // get mean for each month
+        pollutant.byMonth = [];
+        byMonth.forEach(function(month) {
+          pollutant.byMonth.push({
+            month: month.key,
             pollutant: pollutant.key,
-            value: d3.mean(hour.values, function(d) {
+            value: d3.mean(month.values, function(d) {
               return d.value;
             })
           });
         });
       });
 
-      // calculate mean over stations for each time stamp (<day, hour>)
+      // calculate mean over stations for each Date stamp (<month, month>)
 
-      // group data entries by time
-      overall.byTime = d3.nest().key(function(d) {
-        return d.time;
+      // group data entries by Date
+      overall.byMonth = d3.nest().key(function(d) {
+        return d.Date;
       }).entries(data.values);
 
-      // calculate mean for each time stamp
-      overall.byTime.forEach(function(time) {
-        time.time = time.key;
+      // calculate mean for each Date stamp
+      overall.byMonth.forEach(function(Date) {
+        Date.Date = Date.key;
 
         POLLUTANTS.forEach(function(pollutant) {
-          time[pollutant] = d3.mean(time.values, function(d) {
+          Date[pollutant] = d3.mean(Date.values, function(d) {
             return d[pollutant];
           });
         });
 
-        time.value = d3.mean(getPollutants(time));
+        Date.value = d3.mean(getPollutants(Date));
       });
   
       return overall;
@@ -437,7 +440,7 @@ var vis = function(data) {
             });
           });
 
-      // update locations
+      // upDate locations
       d3.json("data/chicago.json", function(json) {
         var center = d3.geo.centroid(json)
         var scale  = 50000;
@@ -484,10 +487,10 @@ var vis = function(data) {
     // stack values for each stations and overall
     var stack = d3.layout.stack()
       .values(function(d) {
-        return d.byHour;
+        return d.byMonth;
       })
       .x(function(d) {
-        return d.hour;
+        return d.month;
       })
       .y(function(d) {
         return d.value;
@@ -512,13 +515,13 @@ var vis = function(data) {
     var innerRadius = 25;
 
     var angle = d3.scale.linear()
-      .domain([0, 24])
+      .domain([0, 12])
       .range([0, 2 * Math.PI]);
     var radius = d3.scale.linear()
       .domain([0, d3.max(data.byStation, function(station) {
         return d3.max(station.byPollutant, function(pollutant) {
-          return d3.max(pollutant.byHour, function(hour) {
-            return hour.y0 + hour.y; 
+          return d3.max(pollutant.byMonth, function(month) {
+            return month.y0 + month.y; 
           });
         });
       })])
@@ -527,7 +530,7 @@ var vis = function(data) {
     var area = d3.svg.area.radial()
       .interpolate('cardinal-closed')
       .angle(function(d) {
-        return angle(d.hour);
+        return angle(d.month);
       })
       .innerRadius(function(d) {
         return radius(d.y0);
@@ -541,11 +544,11 @@ var vis = function(data) {
     POLLUTANTS.forEach(function(pollutant) {
       allZero.push({
         key: pollutant,
-        byHour: (function() {
+        byMonth: (function() {
           var ret = [];
-          for (var i = 0; i < 24; i++) {
+          for (var i = 0; i < 12; i++) {
             ret.push({
-              hour: i,
+              month: i,
               pollutant: pollutant,
               value: 0,
               y0: 0,
@@ -563,46 +566,46 @@ var vis = function(data) {
       .enter().append('path')
         .attr('class', 'layer')
         .attr('d', function(d) {
-          return area(d.byHour);
+          return area(d.byMonth);
         })
         .on('click', function(d) {
           controller.selectPollutant(d.key);
         });
 
-    // draw time scales
+    // draw Date scales
     (function() {
-      var radialTimeScale = d3.select('svg.radial')
+      var radialDateScale = d3.select('svg.radial')
         .append('g')
-          .attr('class', 'legend time-scale');
-      var textClass = 'legend-element time-scale';
-      radialTimeScale
+          .attr('class', 'legend Date-scale');
+      var textClass = 'legend-element Date-scale';
+      radialDateScale
         .append('text')
         .attr('class', textClass)
-        .text('0:00')
+        .text('Jan')
         .attr('x', width / 2)
         .attr('y', height / 2 - 20)
         .attr('dy', '.375em')
         .attr('text-anchor', 'middle');
-      radialTimeScale
+      radialDateScale
         .append('text')
         .attr('class', textClass)
-        .text('6')
+        .text('April')
         .attr('x', width / 2 + 25)
         .attr('y', height / 2 + 5)
         .attr('dy', '.375em')
         .attr('text-anchor', 'middle');
-      radialTimeScale
+      radialDateScale
         .append('text')
         .attr('class', textClass)
-        .text('12:00')
+        .text('July')
         .attr('x', width / 2)
         .attr('y', height / 2 + 30)
         .attr('dy', '.375em')
         .attr('text-anchor', 'middle');
-      radialTimeScale
+      radialDateScale
         .append('text')
         .attr('class', textClass)
-        .text('18')
+        .text('Oct')
         .attr('x', width / 2 - 25)
         .attr('y', height / 2 + 5)
         .attr('dy', '.375em')
@@ -655,7 +658,7 @@ var vis = function(data) {
         var len = layeredStations.length;
         for (var i = 0; i < len; i++) {
           var found = false;
-          if (layeredStations[i][0].byHour[0].place == opt.id) {
+          if (layeredStations[i][0].byMonth[0].Site == opt.id) {
             var layers = layeredStations[i];
             found = true;
             break;
@@ -675,7 +678,7 @@ var vis = function(data) {
         })
         .transition()
           .attr('d', function(d) {
-            return area(d.byHour);
+            return area(d.byMonth);
           })
           .style('fill', function(d, i) {
             if (opt.pollutant === 'all') {
@@ -706,25 +709,31 @@ var vis = function(data) {
       .attr('transform', 'translate(' + axisWidth + ',' + axisHeight + ')');
 
     var gap = 1;
-    var tileWidth = (width - axisWidth) / 24 - gap;
-    var tileHeight = 1.25*(height - axisHeight) / 30 - gap;
+    var tileWidth = (width - axisWidth) / 12 - gap;
+    var tileHeight = (height - axisHeight) / 31 - gap;
 
     // initial plot
     tilesSVG.selectAll('.tile')
-      .data(data.overall.byTime)
+      .data(data.overall.byMonth)
       .enter().append('rect')
         .attr('class', 'tile')
         .attr('width', tileWidth)
         .attr('height', tileHeight)
         .attr('rx', 3)
         .attr('ry', 1)
-        .attr('x', function (d) { 
-          var x = d.time.substr(3,2) * (tileWidth + gap);
+        .attr('x', function (d) {
+          var x = (d.Date.substr(5,2) - 1) * (tileWidth + gap)
           return x
         })
         .attr('y', function(d) {
-          var y = d.time.substr(9,2) * (tileHeight + gap);
-          return y;
+          var y = (d.Date.substr(8,2) - 1) * (tileHeight + gap)
+          return y
+        })
+        .attr('M', function (d) {
+          return d.Date.substr(5,2)
+        })
+        .attr('D', function (d) {
+          return d.Date.substr(8,2)
         });
 
     // draw axes
@@ -735,7 +744,7 @@ var vis = function(data) {
           .attr('class', 'legend axis')
           .attr('transform', 'translate(' + axisWidth + ',' + (axisHeight - 3) + ')');
       var xData = [];
-      for (var i = 0; i < 24; i++) {
+      for (var i = 0; i < 12; i++) {
         xData.push(i);
       }
       xAxis.selectAll('text.legend-element.axis-scale')
@@ -747,8 +756,8 @@ var vis = function(data) {
           })
           .attr('y', 0)
           .text(function(d) {
-            if (d % 3 === 0) {
-              return d + ':00';
+            if (d % 1 === 0) {
+              return d + 1;
             }
             return '';
           });
@@ -759,7 +768,7 @@ var vis = function(data) {
           .attr('class', 'legend axis')
           .attr('transform', 'translate(0,' + axisHeight + ')');
       var yData = [];
-      for (var i = 1; i <= 30; i++) {
+      for (var i = 0; i <= 31; i++) {
         yData.push(i);
       }
       yAxis.selectAll('text.legend-element.axis-scale')
@@ -773,8 +782,8 @@ var vis = function(data) {
           .attr('dy', '.375em')
           .attr('text-anchor', 'end')
           .text(function(d) {
-            if (d % 3 === 2) {
-              return d;
+            if (d % 5 === 0) {
+              return d + 1;
             }
             return '';
           });
@@ -783,13 +792,13 @@ var vis = function(data) {
         .attr('x', axisWidth - 3)
         .attr('y', -3)
         .attr('text-anchor', 'end')
-        .text('Jun')
+        .text('D|M')
     })();
 
     tiles.plot = function(opt) {
       switch (opt.scope) {
       case 'all':
-        var entries = data.overall.byTime;
+        var entries = data.overall.byMonth;
         break;
       case 'station':
         var len = data.byStation.length;

@@ -4,7 +4,7 @@
 
 .btn-info {
 
-  background-color: #3f007d;
+  background-color: #54278f;
 
 }
 
@@ -14,75 +14,67 @@
   background-color: rgb(198,219,239) !important;
 }
 
+.axis-text-y{
+  font-weight: 900;
+ }
+
 .axis-text-x {
   font-weight: 900;
-  fill: purple ;
+  fill: #54278f !important;
   text-anchor: middle;
 }
   
-.axis-text-y {
+#ALL.axis-text-y.active{
   font-weight: 900;
-  fill: purple ;
-  text-anchor: middle;
+  fill: #54278f !important;
+  transition: fill 0.5s ease-out;
 }
 
-/* #PM10:active {
+#PM10.axis-text-y.active{
   font-weight: 900;
-  fill: #a50f15;
+  fill: #a50f15 !important;
   transition: fill 0.5s ease-out;
-  text-anchor: middle;
 }
 
-#CO:active {
+#CO.axis-text-y.active{
   font-weight: 900;
-  fill: #006d2c;
+  fill: #006d2c !important;
   transition: fill 0.5s ease-out;
-  text-anchor: middle;
 }
 
-#O3:active {
+#O3.axis-text-y.active{
   font-weight: 900;
-  fill: #08519c;
+  fill: #08519c !important;
   transition: fill 0.5s ease-out;
-  text-anchor: middle;
 }
 
-#SO2:active {
+#SO2.axis-text-y.active{
   font-weight: 900;
-  fill: #d94801;
+  fill: #ffe15d !important;
   transition: fill 0.5s ease-out;
-  text-anchor: middle;
 }
 
-#NO2:active {
+#NO2.axis-text-y.active{
   font-weight: 900;
-  fill: #ffeda0;
+  fill: #d94801 !important;
   transition: fill 0.5s ease-out;
-  text-anchor: middle;
-} */
+}
 
-.inactive {
+.inactive{
   font-weight: lighter;
-  fill: white;
-  transition: fill 0.5s ease-out;
-  text-anchor: middle;
-}
-
-.axis-text-main{
- text-anchor: middle;
- font-size: 0.75em;
+  fill: #808080;
+  transition: fill 0.5s ease-out; 
 }
 
 .tooltip {
-  position: absolute;
+  position: relative;
   width: 300px;
-  height: 125px;
+  height: 60px;
   padding: 10px;
-  padding-bottom: 80px;
+  padding-bottom: 10px;
   font: 12px sans-serif !important;
   color: white;
   text-align: center !important;
-  background: #3f007d;
   border: 0;
   border-radius: 10px;
   opacity: .5 ;
