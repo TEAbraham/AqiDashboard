@@ -198,6 +198,7 @@ d3.csv(alldata).then(alldata => {
         // display tooltip on click
         .on("mouseover", function (d) {
             var x = d.parameter
+            d3.select(this).style("cursor", "pointer")
             toolTip.style("background", function(){
                 if (x === "81102"){return "#a50f15"}
                 else if (x ==="44201"){return '#08519c'}
@@ -209,6 +210,7 @@ d3.csv(alldata).then(alldata => {
         })
         // hide tooltip on mouseout
         .on("mouseout", function (d) {
+            d3.select(this).style("cursor", "default")
             toolTip.hide(d);
         })
     // create x-axis
@@ -302,7 +304,13 @@ d3.csv(alldata).then(alldata => {
 
     }
 
-
+    d3.selectAll(".axis-text-y").on("mouseover", function() {
+          d3.select(this).style("cursor", "pointer"); 
+        })
+    d3.selectAll(".axis-text-y").on("mouseout", function() {
+        d3.select(this).style("cursor", "default"); 
+        })
+        
     // On click events for the y-axis
     d3.selectAll(".axis-text-y").on("click", function () {
 
